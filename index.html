@@ -3,169 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Pro con Fórmulas</title>
-    <!-- MathJax para que las fórmulas se vean perfectas -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+    <title>Calculadora con Procedimiento</title>
     <style>
         :root {
             --primary: #6366f1;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #1e293b;
+            --bg: #f1f5f9;
+            --calc-bg: #1e293b;
+            --text-light: #f8fafc;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg);
-            color: var(--text);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
-            margin: 0;
         }
 
-        .container {
+        .calc-container {
+            background: var(--calc-bg);
+            padding: 20px;
+            border-radius: 25px;
             width: 100%;
-            max-width: 400px;
-            background: var(--card);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 340px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         }
 
-        h2 { text-align: center; color: var(--primary); margin-bottom: 25px; }
-
-        .input-group { margin-bottom: 15px; }
-
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
-
-        input {
+        #display {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
+            height: 60px;
+            background: #0f172a;
             border-radius: 12px;
+            color: #10b981;
+            text-align: right;
+            font-size: 1.8rem;
+            padding: 10px;
+            border: none;
+            margin-bottom: 15px;
             box-sizing: border-box;
-            font-size: 16px; /* Evita zoom automático en iPhone */
-            transition: border-color 0.3s;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
         }
 
         button {
-            width: 100%;
-            padding: 15px;
-            background-color: var(--primary);
-            color: white;
+            height: 55px;
+            border-radius: 12px;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: transform 0.1s, opacity 0.2s;
-        }
-
-        button:active { transform: scale(0.98); opacity: 0.9; }
-
-        #resultado-area {
-            margin-top: 25px;
-            padding: 15px;
-            background: #f1f5f9;
-            border-radius: 12px;
-            display: none;
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        .formula-display {
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            overflow-x: auto;
-            text-align: center;
-        }
-
-        .final-val {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #059669;
-            text-align: center;
+            cursor: pointer;
+            transition: transform 0.1s;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        button:active { transform: scale(0.95); }
+
+        .num { background: #334155; color: white; }
+        .op { background: var(--primary); color: white; }
+        .action { background: #ef4444; color: white; }
+        .equal { background: #10b981; color: white; grid-column: span 2; }
+
+        #procedimiento {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 340px;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            display: none;
+            border-left: 5px solid var(--primary);
         }
+
+        .step { margin-bottom: 10px; font-size: 0.95rem; }
+        .res-final { color: #10b981; font-weight: bold; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Calculadora de Áreas</h2>
-    
-    <div class="input-group">
-        <label>Base (cm)</label>
-        <input type="number" id="base" placeholder="Ej: 10">
-    </div>
-
-    <div class="input-group">
-        <label>Altura (cm)</label>
-        <input type="number" id="altura" placeholder="Ej: 5">
-    </div>
-
-    <button onclick="procesarCalculo()">Calcular Paso a Paso</button>
-
-    <div id="resultado-area">
-        <p><strong>1. Fórmula usada:</strong></p>
-        <div class="formula-display" id="f-estatica">
-            \[ A = \frac{b \times h}{2} \]
-        </div>
-
-        <p><strong>2. Sustitución:</strong></p>
-        <div class="formula-display" id="f-sustitucion"></div>
-
-        <p><strong>3. Resultado final:</strong></p>
-        <div class="final-val" id="res-final"></div>
+<div class="calc-container">
+    <input type="text" id="display" value="0" readonly>
+    <div class="buttons">
+        <button class="action" onclick="limpiar()">C</button>
+        <button class="action" onclick="borrarUno()">←</button>
+        <button class="op" onclick="agregar('/')">÷</button>
+        <button class="op" onclick="agregar('*')">×</button>
+        
+        <button class="num" onclick="agregar('7')">7</button>
+        <button class="num" onclick="agregar('8')">8</button>
+        <button class="num" onclick="agregar('9')">9</button>
+        <button class="op" onclick="agregar('-')">−</button>
+        
+        <button class="num" onclick="agregar('4')">4</button>
+        <button class="num" onclick="agregar('5')">5</button>
+        <button class="num" onclick="agregar('6')">6</button>
+        <button class="op" onclick="agregar('+')">+</button>
+        
+        <button class="num" onclick="agregar('1')">1</button>
+        <button class="num" onclick="agregar('2')">2</button>
+        <button class="num" onclick="agregar('3')">3</button>
+        <button class="num" onclick="agregar('.')">.</button>
+        
+        <button class="num" onclick="agregar('0')">0</button>
+        <button class="equal" onclick="resolver()">Mostrar Procedimiento</button>
     </div>
 </div>
 
+<div id="procedimiento">
+    <h4>📝 Procedimiento Paso a Paso:</h4>
+    <div id="pasos"></div>
+</div>
+
 <script>
-    function procesarCalculo() {
-        const b = parseFloat(document.getElementById('base').value);
-        const h = parseFloat(document.getElementById('altura').value);
-        const resArea = document.getElementById('resultado-area');
+    const disp = document.getElementById('display');
+    const procDiv = document.getElementById('procedimiento');
+    const pasosDiv = document.getElementById('pasos');
 
-        if (isNaN(b) || isNaN(h)) {
-            alert("Por favor, ingresa números válidos.");
-            return;
+    function agregar(v) {
+        if (disp.value === "0") disp.value = v;
+        else disp.value += v;
+    }
+
+    function limpiar() {
+        disp.value = "0";
+        procDiv.style.display = "none";
+    }
+
+    function borrarUno() {
+        disp.value = disp.value.slice(0, -1) || "0";
+    }
+
+    function resolver() {
+        const cuenta = disp.value;
+        try {
+            const resultado = eval(cuenta);
+            
+            // Mostrar el cuadro de procedimiento
+            procDiv.style.display = "block";
+            
+            // Crear el texto del procedimiento
+            let detalle = cuenta.replace(/\*/g, ' × ').replace(/\//g, ' ÷ ');
+            
+            pasosDiv.innerHTML = `
+                <div class="step"><strong>1. Operación ingresada:</strong><br>${detalle}</div>
+                <div class="step"><strong>2. Aplicando cálculo:</strong><br>Se procesan los números según el orden matemático.</div>
+                <div class="step"><strong>3. Resultado:</strong><br>
+                    <span class="res-final">${resultado}</span>
+                </div>
+            `;
+            
+            disp.value = resultado;
+
+            if (navigator.vibrate) navigator.vibrate(50);
+        } catch {
+            alert("Cuenta mal escrita");
         }
-
-        // Vibración táctil para celular
-        if (navigator.vibrate) {
-            navigator.vibrate(40);
-        }
-
-        const area = (b * h) / 2;
-
-        // Actualizar sustitución usando formato LaTeX para MathJax
-        const sustitucionDiv = document.getElementById('f-sustitucion');
-        sustitucionDiv.innerHTML = `\\[ A = \\frac{${b} \\times ${h}}{2} = \\frac{${b * h}}{2} \\]`;
-
-        // Actualizar resultado final
-        document.getElementById('res-final').innerText = `${area} cm²`;
-
-        // Mostrar el cuadro de resultados
-        resArea.style.display = 'block';
-
-        // Pedirle a MathJax que procese las nuevas fórmulas añadidas por JS
-        MathJax.typesetPromise();
     }
 </script>
 
 </body>
-  </html>
+</html>
