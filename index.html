@@ -3,38 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora con Procedimiento</title>
+    <title>Calculadora de Escuela 263</title>
     <style>
         :root {
             --primary: #6366f1;
-            --bg: #f1f5f9;
+            --bg: #f8fafc;
             --calc-bg: #1e293b;
-            --text-light: #f8fafc;
+            --text-dark: #1e293b;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             background-color: var(--bg);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            margin: 0;
         }
 
         .calc-container {
             background: var(--calc-bg);
             padding: 20px;
-            border-radius: 25px;
+            border-radius: 20px;
             width: 100%;
-            max-width: 340px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
 
         #display {
             width: 100%;
             height: 60px;
             background: #0f172a;
-            border-radius: 12px;
+            border-radius: 10px;
             color: #10b981;
             text-align: right;
             font-size: 1.8rem;
@@ -52,34 +53,70 @@
 
         button {
             height: 55px;
-            border-radius: 12px;
+            border-radius: 10px;
             border: none;
             font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: 0.1s;
         }
 
         button:active { transform: scale(0.95); }
 
         .num { background: #334155; color: white; }
         .op { background: var(--primary); color: white; }
-        .action { background: #ef4444; color: white; }
+        .clear { background: #ef4444; color: white; }
         .equal { background: #10b981; color: white; grid-column: span 2; }
 
-        #procedimiento {
+        /* Contenedor del procedimiento visual */
+        #procedimiento-visual {
             margin-top: 20px;
-            width: 100%;
-            max-width: 340px;
             background: white;
-            padding: 15px;
+            padding: 25px;
             border-radius: 15px;
             display: none;
-            border-left: 5px solid var(--primary);
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            color: var(--text-dark);
+            font-size: 1.6rem;
         }
 
-        .step { margin-bottom: 10px; font-size: 0.95rem; }
-        .res-final { color: #10b981; font-weight: bold; font-size: 1.2rem; }
+        /* Estilo para Suma, Resta y Multiplicación parada */
+        .cuenta-parada {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .linea-resultado {
+            border-top: 3px solid black;
+            width: 100%;
+            margin-top: 5px;
+            padding-top: 5px;
+            text-align: right;
+        }
+
+        /* Estilo para la Galera de División (Basado en descarga.png) */
+        .galera-container {
+            display: grid;
+            grid-template-columns: auto auto;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .divisor-box {
+            border-left: 3px solid black;
+            border-bottom: 3px solid black;
+            padding: 2px 15px;
+        }
+
+        .dividendo-box { padding: 2px 15px; text-align: right; }
+        .cociente-box { padding: 2px 15px; }
+        .resto-box { text-align: right; padding-right: 20px; text-decoration: underline; }
+
     </style>
 </head>
 <body>
@@ -87,40 +124,38 @@
 <div class="calc-container">
     <input type="text" id="display" value="0" readonly>
     <div class="buttons">
-        <button class="action" onclick="limpiar()">C</button>
-        <button class="action" onclick="borrarUno()">←</button>
-        <button class="op" onclick="agregar('/')">÷</button>
-        <button class="op" onclick="agregar('*')">×</button>
+        <button class="clear" onclick="limpiar()">C</button>
+        <button class="op" onclick="agregar('÷')">÷</button>
+        <button class="op" onclick="agregar('×')">×</button>
+        <button class="op" onclick="agregar('-')">−</button>
         
         <button class="num" onclick="agregar('7')">7</button>
         <button class="num" onclick="agregar('8')">8</button>
         <button class="num" onclick="agregar('9')">9</button>
-        <button class="op" onclick="agregar('-')">−</button>
+        <button class="op" onclick="agregar('+')">+</button>
         
         <button class="num" onclick="agregar('4')">4</button>
         <button class="num" onclick="agregar('5')">5</button>
         <button class="num" onclick="agregar('6')">6</button>
-        <button class="op" onclick="agregar('+')">+</button>
+        <button class="num" onclick="agregar('.')">.</button>
         
         <button class="num" onclick="agregar('1')">1</button>
         <button class="num" onclick="agregar('2')">2</button>
         <button class="num" onclick="agregar('3')">3</button>
-        <button class="num" onclick="agregar('.')">.</button>
-        
         <button class="num" onclick="agregar('0')">0</button>
-        <button class="equal" onclick="resolver()">Mostrar Procedimiento</button>
+        
+        <button class="equal" onclick="resolver()">CALCULAR</button>
     </div>
 </div>
 
-<div id="procedimiento">
-    <h4>📝 Procedimiento Paso a Paso:</h4>
-    <div id="pasos"></div>
+<div id="procedimiento-visual">
+    <div id="contenido-visual"></div>
 </div>
 
 <script>
     const disp = document.getElementById('display');
-    const procDiv = document.getElementById('procedimiento');
-    const pasosDiv = document.getElementById('pasos');
+    const visual = document.getElementById('procedimiento-visual');
+    const contenido = document.getElementById('contenido-visual');
 
     function agregar(v) {
         if (disp.value === "0") disp.value = v;
@@ -129,37 +164,52 @@
 
     function limpiar() {
         disp.value = "0";
-        procDiv.style.display = "none";
-    }
-
-    function borrarUno() {
-        disp.value = disp.value.slice(0, -1) || "0";
+        visual.style.display = "none";
     }
 
     function resolver() {
-        const cuenta = disp.value;
-        try {
-            const resultado = eval(cuenta);
-            
-            // Mostrar el cuadro de procedimiento
-            procDiv.style.display = "block";
-            
-            // Crear el texto del procedimiento
-            let detalle = cuenta.replace(/\*/g, ' × ').replace(/\//g, ' ÷ ');
-            
-            pasosDiv.innerHTML = `
-                <div class="step"><strong>1. Operación ingresada:</strong><br>${detalle}</div>
-                <div class="step"><strong>2. Aplicando cálculo:</strong><br>Se procesan los números según el orden matemático.</div>
-                <div class="step"><strong>3. Resultado:</strong><br>
-                    <span class="res-final">${resultado}</span>
+        let texto = disp.value;
+        let signo = "";
+        
+        if (texto.includes('+')) signo = '+';
+        else if (texto.includes('-')) signo = '-';
+        else if (texto.includes('×')) signo = '×';
+        else if (texto.includes('÷')) signo = '÷';
+
+        if (!signo) return;
+
+        let partes = texto.split(signo);
+        let n1 = parseFloat(partes[0]);
+        let n2 = parseFloat(partes[1]);
+
+        visual.style.display = "block";
+
+        if (signo === '÷') {
+            // Galera de división
+            let cociente = Math.floor(n1 / n2);
+            let resto = n1 % n2;
+            contenido.innerHTML = `
+                <div class="galera-container">
+                    <div class="dividendo-box">${n1}</div>
+                    <div class="divisor-box">${n2}</div>
+                    <div class="resto-box">${resto}</div>
+                    <div class="cociente-box">${cociente}</div>
                 </div>
             `;
+            disp.value = cociente;
+        } else {
+            // Cuenta parada para suma, resta y multiplicación
+            let opJS = signo === '×' ? '*' : signo;
+            let resultado = eval(`${n1}${opJS}${n2}`);
             
+            contenido.innerHTML = `
+                <div class="cuenta-parada">
+                    <div>${n1}</div>
+                    <div>${signo} ${n2}</div>
+                    <div class="linea-resultado">${resultado}</div>
+                </div>
+            `;
             disp.value = resultado;
-
-            if (navigator.vibrate) navigator.vibrate(50);
-        } catch {
-            alert("Cuenta mal escrita");
         }
     }
 </script>
